@@ -1,6 +1,6 @@
 """
 Trie (Prefix Tree) Implementation
-Supports: insert(word), search(word), starts_with(prefix)
+Supports: insert(word), search(word), starts_with(prefix), delete(word)
 """
 
 class TrieNode:
@@ -40,34 +40,63 @@ class Trie:
         return True
     
     def delete(self, word):
-        """Delete a word from the trie and clean up unused nodes"""
+        """Delete a word from the trie, cleaning up unused nodes"""
         def _delete_helper(node, word, index):
-            # Base case: if we've processed all characters in the word
             if index == len(word):
-                # If this is not the end of a word, the word doesn't exist
                 if not node.is_end_of_word:
-                    return False
-                # Mark this node as not the end of a word
+                    return False  # Word not found
                 node.is_end_of_word = False
-                # Return True if this node has no children (can be deleted)
+                # Return True if node has no children (can be deleted)
                 return len(node.children) == 0
             
             char = word[index]
-            # If the character doesn't exist in the trie, the word doesn't exist
             if char not in node.children:
-                return False
+                return False  # Word not found
             
-            # Recursively delete the next character
             should_delete_child = _delete_helper(node.children[char], word, index + 1)
             
-            # If the child should be deleted, remove it from the current node's children
             if should_delete_child:
                 del node.children[char]
-                
-            # Return True if the current node should be deleted:
-            # - It's not the end of a word
-            # - And it has no remaining children
-            return not node.is_end_of_word and len(node.children) == 0
+                # Return True if this node is not an end of word and has no children
+                return not node.is_end_of_word and len(node.children) == 0
+            
+            return False
         
-        # Start the deletion process from the root
         _delete_helper(self.root, word, 0)
+
+# Test the implementation
+if __name__ == "__main__":
+    trie = Trie()
+    
+    # Test insert
+    words = ["apple", "app", "application", "appreciate", "banana", "band", "bandana"]
+    for word in words:
+        trie.insert(word)
+    
+    # Test search
+    print("Searching for 'app':", trie.search("app"))  # True
+    print("Searching for 'appl':", trie.search("appl"))  # False
+    print("Searching for 'application':", trie.search("application"))  # True
+    
+    # Test starts_with
+    print("Starts with 'app':", trie.starts_with("app"))  # True
+    print("Starts with 'ban':", trie.starts_with("ban"))  # True
+    print("Starts with 'cat':", trie.starts_with("cat"))  # False
+    
+    # Test delete
+    trie.delete("app")
+    print("After deleting 'app':")
+    print("Search 'app':", trie.search("app"))  # False
+    print("Starts with 'app':", trie.starts_with("app"))  # True (because 'application' and 'appreciate' still exist)
+    
+    trie.delete("application")
+    print("After deleting 'application':")
+    print("Starts with 'app':", trie.starts_with("app"))  # True (because 'appreciate' still exists)
+    
+    trie.delete("appreciate")
+    print("After deleting 'appreciate':")
+    print("Starts with 'app':", trie.starts_with("app"))  # True (because 'app' was deleted but 'apple' still exists)
+    
+    trie.delete("apple")
+    print("After deleting 'apple':")
+    print("Starts with 'app':", trie.starts_with("app"))  # False (no more words starting with 'app')"""
